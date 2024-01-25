@@ -2,72 +2,114 @@
 
 #include "linked_list.hpp"
 
-using namespace std;
-
 /*
-build_new_linked_list:
-        returns a pointer to the first node in the linked list
-    If 0 == total_new_elements, then return null
-*/
-struct node* build_new_linked_list(int total_new_elements)
+ * build_new_linked_list:
+ *
+ *  Creates a linked list with `nelts` elements, initialized with incrementing
+ *  data values beginning with 0.
+ *
+ *      returns a pointer to the first node in the linked list
+ *      if nelts == 0, returns null
+ */
+node* build_new_linked_list(int nelts)
 {
-    if (0 == total_new_elements) {
-        return NULL;
+    if (0 == nelts) {
+        return nullptr; // nullptr is preferable to NULL in c++
     }
-    else {
-        struct node* root = new node;
-        root->data = -1;
-        struct node* linked_list = root;
+    node* root = new node{.data = 0, .next = nullptr};
+    node* llist = root;
 
-        for (int i = 0; i < total_new_elements; i++) {
-            linked_list->next = new node;
-            linked_list->data = i + 1;
-            linked_list = linked_list->next;
-        }
-
-        return root;
+    /*
+     * original code had a few bugs:
+     *      would add one more node than requested
+     *      would overwrite previous nodes data
+     *
+     * this fixes both issues
+     */
+    for (int i = 1; i < nelts; ++i) {
+        /*
+         * at the start of each iteration, the current node pointed to by
+         * `llist` already has `data`, just needs a `next`.
+         *
+         * this loop inits `data` to previous + 1
+         */
+        llist->next = new node{.data = llist->data + 1, .next = nullptr};
+        llist = llist->next;
     }
+
+    return root;
 }
-/*
-get_linked_list_data_item_value:
 
-    returns -1 if not enough nodes
-*/
-int get_linked_list_data_item_value(struct node* start, int node_number,
-                                    int total_elements)
+/*
+ * get_linked_list_data_item_value:
+ *
+ *  returns -1 if not enough nodes
+ */
+int get_linked_list_data_item_value(node* start, int index, int nelts)
 {
-    if (node_number > total_elements) {
+    // needs to be num >= total
+    // otherwise you'll be able to index one after the end of the list
+    // presuming indices begin at 0
+    if (index >= nelts) {
+        // overrun
         return -1;
     }
-    else {
-        struct node* linked_list = start;
+    node* llist = start;
 
-        for (int i = 0; i < node_number - 1; i++) {
-            linked_list = linked_list->next;
-        }
-
-        return linked_list->data;
+    for (int i = 0; i < index; ++i) {
+        llist = llist->next;
     }
+
+    return llist->data;
 }
 
-void print_linked_list(struct node* start, int total_elements)
+void print_linked_list(node* start, int nelts)
 {
-    struct node* linked_list = start;
+    node* llist = start;
 
-    for (int i = 0; i < total_elements; i++) {
-        cout << linked_list->data << endl;
-        linked_list = linked_list->next;
+    for (int i = 0; i < nelts; i++) {
+        std::cout << llist->data << std::endl;
+        llist = llist->next;
     }
 }
 
 /*
-update_data_in_linked_list:
-        Returns false if node_to_update > total_elements
-        Returns true otherwise
-*/
-bool update_data_in_linked_list(struct node* start, int node_to_update,
-                                int update_val, int total_elements)
+ * output_linked_list
+ *
+ * print_linked_list is not easily testable without redirecting/capturing
+ * stdout, so I made this instead to test stringifying a list.
+ */
+std::ostream& operator<<(std::ostream& os, const node* n)
 {
+    os << "{";
+    // last node points to nullptr.
+    // (kinda obviates the need for passing `nelts` each time but I wasn't
+    // going to change the interface set out in the exercise)
+    while (n) {
+        os << n->data;
+        n = n->next;
+        if (n) {
+            os << ", ";
+        }
+    }
+    return os << "}";
+}
 
+/*
+ * update_data_in_linked_list:
+ *      Returns false if index >= nelts
+ *      Returns true otherwise
+ */
+bool update_data_in_linked_list(node* start, int index, int value, int nelts)
+{
+    if (index >= nelts) {
+        // overrun
+        return false;
+    }
+    node* llist = start;
+    for (int i = 0; i < index; ++i) {
+        llist = llist->next;
+    }
+    llist->data = value;
     return true;
 }
