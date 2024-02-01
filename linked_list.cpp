@@ -13,7 +13,7 @@
  */
 node* build_new_linked_list(int nelts)
 {
-    if (0 == nelts) {
+    if (nelts < 1) {
         return nullptr; // nullptr is preferable to NULL in c++
     }
     node* root = new node{.data = 0, .next = nullptr};
@@ -50,7 +50,7 @@ int get_linked_list_data_item_value(node* start, int index, int nelts)
     // needs to be num >= total
     // otherwise you'll be able to index one after the end of the list
     // presuming indices begin at 0
-    if (index >= nelts) {
+    if (!start || index >= nelts || index < 0 || nelts < 1) {
         // overrun
         return -1;
     }
@@ -63,14 +63,9 @@ int get_linked_list_data_item_value(node* start, int index, int nelts)
     return llist->data;
 }
 
-void print_linked_list(node* start, int nelts)
+void print_linked_list(node* start, int _nelts)
 {
-    node* llist = start;
-
-    for (int i = 0; i < nelts; i++) {
-        std::cout << llist->data << std::endl;
-        llist = llist->next;
-    }
+    std::cout << start << std::endl;
 }
 
 /*
@@ -102,7 +97,7 @@ std::ostream& operator<<(std::ostream& os, const node* n)
  */
 bool update_data_in_linked_list(node* start, int index, int value, int nelts)
 {
-    if (index >= nelts) {
+    if (!start || index >= nelts || index < 0 || nelts < 1) {
         // overrun
         return false;
     }
@@ -112,4 +107,41 @@ bool update_data_in_linked_list(node* start, int index, int value, int nelts)
     }
     llist->data = value;
     return true;
+}
+
+/*
+ * delete_linked_list
+ *
+ *  deallocates given list beginning with `start`
+ *
+ * NOTE: not sure how to test this with a unit framework. Valgrind would be how
+ * I would diagnose a memory leak. There's no way to test for a leak or
+ * use-after-free in doctest.h that I could find.
+ */
+void delete_linked_list(node* start)
+{
+    node* current = start;
+    node* next = nullptr;
+    while (current) {
+        next = current->next;
+        delete current;
+        current = next;
+    }
+}
+
+/*
+ * get_list_length
+ *
+ *  returns the number of nodes in the list.
+ *
+ *  used for testing to assert created lists are the size they should be.
+ */
+size_t get_list_length(const node* start)
+{
+    size_t len = 0;
+    while (start) {
+        ++len;
+        start = start->next;
+    }
+    return len;
 }
